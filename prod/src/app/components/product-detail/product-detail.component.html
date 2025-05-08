@@ -1,0 +1,97 @@
+<div class="product-detail-container">
+    <div *ngIf="loading" class="loading">
+      <div class="loader"></div>
+      <p>Loading product details...</p>
+    </div>
+  
+    <div *ngIf="error" class="error-message">
+      {{ error }}
+    </div>
+  
+    <div *ngIf="!loading && !error && product">
+      <div class="product-header">
+        <div class="back-link">
+          <a [routerLink]="['/products']">&larr; Back to products</a>
+        </div>
+        <h1>{{ product.name }}</h1>
+        <div class="product-meta">
+          <span class="category">{{ product.category }}</span>
+          <span class="price">{{ product.price | currency }}</span>
+        </div>
+      </div>
+  
+      <div class="product-actions">
+        <button class="edit-button" [routerLink]="['/products', product.id, 'edit']">Edit Product</button>
+        <button class="delete-button" (click)="confirmDelete()">Delete Product</button>
+        <button class="enrich-button" (click)="toggleEnrichmentForm()">
+          {{ showEnrichmentForm ? 'Cancel Enrichment' : 'Enrich Description' }}
+        </button>
+      </div>
+  
+      <div *ngIf="showEnrichmentForm" class="enrichment-form">
+        <h3>Enrichment Options</h3>
+        <div class="form-group">
+          <label for="tone">Tone:</label>
+          <select id="tone" [(ngModel)]="enrichmentOptions.tone" class="form-control">
+            <option value="professional">Professional</option>
+            <option value="friendly">Friendly</option>
+            <option value="technical">Technical</option>
+            <option value="casual">Casual</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="length">Length:</label>
+          <select id="length" [(ngModel)]="enrichmentOptions.length" class="form-control">
+            <option value="short">Short</option>
+            <option value="medium">Medium</option>
+            <option value="long">Long</option>
+          </select>
+        </div>
+        <button 
+          class="enrich-submit" 
+          (click)="enrichDescription()" 
+          [disabled]="enriching">
+          {{ enriching ? 'Generating...' : 'Generate Enhanced Description' }}
+        </button>
+        <div *ngIf="enriching" class="enriching-loader">
+          <div class="loader small"></div>
+          <p>Generating enhanced description with Jina.AI...</p>
+        </div>
+      </div>
+  
+      <div class="description-section">
+        <div class="description-box">
+          <h3>Original Description</h3>
+          <p>{{ product.description }}</p>
+        </div>
+  
+        <div *ngIf="product.enrichedDescription" class="description-box enriched">
+          <h3>Enhanced Description (by Jina.AI)</h3>
+          <p>{{ product.enrichedDescription }}</p>
+          <div class="enriched-actions">
+            <button class="keep-btn" (click)="keepEnrichedDescription()">Keep Enhanced Description</button>
+            <button class="discard-btn" (click)="discardEnrichedDescription()">Discard</button>
+          </div>
+        </div>
+      </div>
+  
+      <div *ngIf="showDeleteConfirm" class="delete-confirm">
+        <div class="delete-modal">
+          <h3>Confirm Delete</h3>
+          <p>Are you sure you want to delete "{{ product.name }}"?</p>
+          <p class="warning">This action cannot be undone!</p>
+          <div class="delete-actions">
+            <button class="cancel-btn" (click)="cancelDelete()">Cancel</button>
+            <button class="confirm-btn" (click)="deleteProduct()">Yes, Delete</button>
+          </div>
+        </div>
+        <div class="modal-backdrop" (click)="cancelDelete()"></div>
+      </div>
+    </div>
+  
+    <div *ngIf="!loading && !error && !product" class="not-found">
+      <h2>Product Not Found</h2>
+      <p>The product you're looking for doesn't exist or has been removed.</p>
+      <a [routerLink]="['/products']" class="back-link">Return to Product List</a>
+    </div>
+  </div>
