@@ -1,137 +1,64 @@
-# TP02 : Application de gestion de produits avec Angular et Jina.AI
+# TP02 - API de gestion de produits avec enrichissement par Jina.AI
 
-Ce TP a pour objectif de développer une application Angular qui se connecte à une API existante pour gérer des produits et utiliser l'IA générative (Jina.AI) pour enrichir automatiquement les descriptions de produits.
+## Objectif
 
-## Objectifs pédagogiques
+Ce projet a pour but de développer une API REST permettant de gérer des produits (CRUD) avec une fonctionnalité supplémentaire : l'enrichissement automatique des descriptions de produits via un appel à l'API Jina.AI.
 
-- Créer une application Angular complète
-- Implémenter des fonctionnalités CRUD
-- Interagir avec une API REST
-- Intégrer une solution d'IA générative
-- Gérer les états et les données dans une application front-end
+---
 
-## Mise en place de l'API
+## Structure du projet
 
-Avant de commencer à développer l'application Angular, vous devez mettre en place l'API backend fournie.
+- `routes/product.js` : contient les routes Express pour les opérations CRUD et l'enrichissement.
+- `models/product.js` : contient les opérations de base de données (SQLite) pour les produits.
+- `service/jina.js` : gère la communication avec l'API Jina.AI (non fourni ici).
+- `database/db.js` : configuration de la base SQLite.
+- `README.md` : document d’explication et de justification.
 
-### Prérequis
+---
 
-- Node.js & NPM
-- Clé API Jina.AI (gratuite, sans création de compte nécessaire)
+## Fonctionnalités
 
-### Installation de l'API
+- **GET /api/products** : récupérer tous les produits.
+- **GET /api/products/:id** : récupérer un produit par son ID.
+- **POST /api/products** : créer un nouveau produit.
+- **PUT /api/products/:id** : modifier un produit existant.
+- **DELETE /api/products/:id** : supprimer un produit.
+- **POST /api/products/:id/enrich** : enrichir la description d’un produit en appelant l’API Jina.AI.
 
-1. Clonez le dépôt de l'API
-2. Installez les dépendances :
-   ```
-   cd epsi-tp-02
-   npm install
-   ```
-3. Créez un fichier `.env` à la racine du projet avec le contenu suivant :
-   ```
-   PORT=3000
-   JINA_API_KEY=votre_clé_api_jina
-   DATABASE_FILE=./database/products.sqlite
-   ```
-   
-   > **Notes sur la configuration** :
-   > - Vous pouvez modifier la valeur du `PORT` si le port 3000 est déjà utilisé sur votre machine
-   > - Vous pouvez également modifier le chemin de `DATABASE_FILE` si vous souhaitez stocker la base de données dans un autre emplacement
-   
-   > **Obtention de la clé API Jina.AI** : 
-   > - Accédez directement à [https://jina.ai/api-dashboard](https://jina.ai/api-dashboard)
-   > - Vous pouvez obtenir une clé API gratuite en mode public sans nécessité de créer un compte
-   > - **Important** : Ne prenez pas d'abonnement payant, le mode gratuit est amplement suffisant pour ce TP
-   > - Copiez la clé API générée et collez-la dans votre fichier `.env`
-   
-4. Initialisez la base de données avec des produits de test :
-   ```
-   npm run init-db
-   ```
-5. Démarrez l'API :
-   ```
-   npm start
-   ```
+---
 
-L'API sera disponible à l'adresse http://localhost:3000 (ou sur le port que vous avez spécifié dans le fichier `.env`).
+## Problèmes rencontrés et solutions
 
-## Endpoints de l'API
+### 1. **Erreur 400 lors de la création d’un produit**
+- **Problème** : Une erreur 400 (`"Le nom du produit est requis"`) survenait même lorsque le champ `"name"` était présent dans le corps de la requête.
+- **Cause** : L'erreur venait du format ou de la manière dont les données étaient envoyées (probablement un mauvais `Content-Type` ou `body-parser` mal configuré).
+- **Solution** : Vérifier que les requêtes sont envoyées avec le bon `Content-Type: application/json` et que `express.json()` est bien utilisé dans le serveur.
 
-### Gestion des produits
+### 2. **Erreur HTTP non descriptive avec Standalion**
+- **Problème** : L'erreur `HttpException: Bad Request` apparaissait sans détails explicites.
+- **Cause** : Le framework Standalion ne donnait pas assez de détails sur les erreurs du corps de requête.
+- **Solution** : Utiliser des outils comme Postman ou cURL avec un corps bien formé pour tester, et s'assurer que le format des données correspond à ce que le serveur attend.
 
-- `GET /api/products` - Récupérer tous les produits
-- `GET /api/products/:id` - Récupérer un produit par son ID
-- `POST /api/products` - Créer un nouveau produit
-  ```json
-  {
-    "name": "Nom du produit",
-    "description": "Description du produit",
-    "price": 99.99,
-    "category": "Catégorie"
-  }
-  ```
-- `PUT /api/products/:id` - Mettre à jour un produit
-  ```json
-  {
-    "name": "Nom du produit modifié",
-    "description": "Description modifiée",
-    "price": 89.99,
-    "category": "Catégorie modifiée"
-  }
-  ```
-- `DELETE /api/products/:id` - Supprimer un produit
+---
 
-### Enrichissement avec Jina.AI
+## Gestion des erreurs
 
-- `POST /api/products/:id/enrich` - Enrichir la description d'un produit
+Dans la route d’enrichissement `/api/products/:id/enrich` :
 
-## Développement de l'application Angular
+- Un **bloc `try-catch`** est utilisé pour capturer les erreurs pouvant survenir lors de l’appel à l’API Jina.AI.
+- En cas d’échec (réseau, format de réponse, etc.), une réponse JSON structurée est renvoyée avec un message clair et le détail de l’erreur.
 
-Vous êtes libre d'organiser votre application Angular comme vous le souhaitez. Voici quelques exigences minimales :
+---
 
-### Fonctionnalités à implémenter
+## Limitations
 
-1. **Liste des produits**
-   - Afficher tous les produits disponibles
-   - Permettre le tri et/ou la recherche de produits
-   - Afficher un aperçu des informations de chaque produit
+- Aucun timeout ou validation stricte n’a encore été mis en place pour les champs `tone` et `length`. Les valeurs par défaut sont utilisées si aucune valeur n’est fournie.
+- Le fichier `product.js` dans `models` utilise des **callbacks** classiques et ne bénéficie donc pas de blocs `try-catch`. La gestion d’erreur est déléguée à la logique du contrôleur.
 
-2. **Détails d'un produit**
-   - Afficher toutes les informations d'un produit
-   - Permettre la navigation vers la page de modification
-   - Offrir la possibilité d'enrichir la description avec Jina.AI
-   - Afficher la description originale et enrichie pour comparaison
+---
 
-3. **Création/Modification de produit**
-   - Formulaire de création d'un nouveau produit
-   - Formulaire de modification d'un produit existant
-   - Validation des champs obligatoires
+## Lancement
 
-4. **Suppression de produit**
-   - Confirmation avant suppression
-   - Retour à la liste après suppression
-
-5. **Enrichissement de description**
-   - Interface pour choisir les options d'enrichissement (ton, longueur)
-   - Visualisation avant/après de la description
-   - Possibilité de conserver ou rejeter la description enrichie
-
-## Livraison
-
-Votre projet doit être livré sous forme d'un dépôt Git (GitHub, GitLab, etc.) contenant :
-
-1. Le code source de votre application Angular
-2. Un fichier README.md avec :
-   - Les instructions d'installation et d'exécution
-   - Une brève documentation de l'application
-   - Les choix techniques que vous avez faits
-   - Les difficultés rencontrées et comment vous les avez surmontées
-
-## Critères d'évaluation
-
-- Fonctionnalités (toutes les fonctionnalités demandées sont-elles présentes ?)
-- Qualité du code (structure, lisibilité, bonnes pratiques)
-- Design et expérience utilisateur
-- Gestion des erreurs et cas limites
-- Documentation et instructions d'installation
-- Originalité et fonctionnalités bonus
+```bash
+npm install
+ng serve
