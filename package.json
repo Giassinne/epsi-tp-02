@@ -1,0 +1,22 @@
+{
+    "name": "tp02-api",
+    "version": "1.0.0",
+    "description": "API pour le TP02 - Gestion de produits avec OpenAI",
+    "main": "app.js",
+    "scripts": {
+        "start": "node app.js",
+        "dev": "nodemon app.js",
+        "init-db": "node database/init-db.js"
+    },
+    "dependencies": {
+        "axios": "^1.8.2",
+        "cors": "^2.8.5",
+        "dotenv": "^16.3.1",
+        "express": "^4.18.2",
+        "openai": "^4.24.1",
+        "sqlite3": "^5.1.6"
+    },
+    "devDependencies": {
+        "nodemon": "^3.0.2"
+    }
+}
